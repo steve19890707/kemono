@@ -58,6 +58,10 @@ const StyledNav = styled.div`
     padding-right: 24px;
   }
 `;
+const assetBasePath = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true" ? "/kemono" : "";
+
+const assetPath = (path) => `${assetBasePath}${path}`;
+
 const createDropdownList = () => {
   const array = [];
   for (let i = 0; i < langauge.length; i++) {
@@ -89,7 +93,7 @@ export default function Nav() {
       <img
         className="logo-img"
         alt=""
-        src={"./imgs/logo.jpg"}
+        src={assetPath("/imgs/logo.jpg")}
         onClick={() => router.push("/")}
       />
       <div className="user-zone">

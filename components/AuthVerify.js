@@ -27,7 +27,7 @@ export default function AuthVerify({ children }) {
   const router = useRouter();
   useEffect(() => {
     if (asideList.length > 0) {
-      const pathname = window.location.pathname;
+      const pathname = router.pathname;
       const checkPathname = asideList.find(
         (v) => getData(v, ["link"]) === pathname
       );
@@ -37,7 +37,7 @@ export default function AuthVerify({ children }) {
         setCheckAside(false);
       }
     }
-  }, [asideList]);
+  }, [asideList, router]);
   return (
     <>
       <Nav />

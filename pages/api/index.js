@@ -17,12 +17,33 @@ export const envHost = () => {
   } else return "https://www.demo.com";
 };
 
+const mockAssetBasePath =
+  process.env.NEXT_PUBLIC_GITHUB_PAGES === "true" ? "/kemono" : "";
+
+const withMockAssetBasePath = (value) => {
+  if (!mockAssetBasePath) return value;
+  if (typeof value === "string") {
+    return value
+      .split(`${mockAssetBasePath}/mock/`)
+      .join("/mock/")
+      .replaceAll("/mock/", `${mockAssetBasePath}/mock/`);
+  }
+  if (Array.isArray(value)) return value.map(withMockAssetBasePath);
+  if (value && typeof value === "object") {
+    return Object.keys(value).reduce((result, key) => {
+      result[key] = withMockAssetBasePath(value[key]);
+      return result;
+    }, {});
+  }
+  return value;
+};
+
 const mockFetchResponse = (result = {}) =>
   Promise.resolve({
     json: () =>
       Promise.resolve({
         error_msg: "SUCCESS",
-        result,
+        result: withMockAssetBasePath(result),
       }),
   });
 

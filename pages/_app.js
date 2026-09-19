@@ -12,6 +12,8 @@ Router.events.on("routeChangeStart", () => {
 Router.events.on("routeChangeComplete", () => NProgress.done());
 Router.events.on("routeChangeError", () => NProgress.done());
 
+const assetBasePath = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true" ? "/kemono" : "";
+
 export default function App({ Component, pageProps }) {
   return (
     <>
@@ -21,7 +23,7 @@ export default function App({ Component, pageProps }) {
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0"
         />
         <title>CQ9 GAMING 後台</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href={`${assetBasePath}/favicon.ico`} />
       </Head>
       <Provider store={store}>
         <Layout>
