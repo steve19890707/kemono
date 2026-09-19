@@ -4,12 +4,10 @@ import { useDispatch } from "react-redux";
 import dynamic from "next/dynamic";
 import styled from "styled-components";
 import packageJson from "../package.json";
-import { getData } from "../common-lib/lib";
 import { commonStyles } from "../styles/styles";
 // reducer
 import { setAuthorization } from "../reducer/props";
 // api
-import { apiPostLogin, apiUpdateAction } from "../pages/api/index";
 // components
 import Input from "../components/Input";
 import Button from "../components/Button";
@@ -66,26 +64,14 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const dataPost = () => {
-    const valCheck = account && password;
-    if (valCheck) {
-      setIsLoading(true);
-      apiUpdateAction({
-        promise: apiPostLogin({
-          account: account,
-          pwd: password,
-        }),
-        success: (response) => {
-          const token = getData(response, ["result"]);
-          dispatch(setAuthorization(token));
-          localStorage.setItem("authorization", token);
-          const timeout = setTimeout(() => {
-            router.push("/");
-            return () => clearTimeout(timeout);
-          }, 100);
-        },
-        unsuccessfully: () => setIsLoading(false),
-      });
-    } else return;
+    setIsLoading(true);
+    const token = "local-preview-token";
+    dispatch(setAuthorization(token));
+    localStorage.setItem("authorization", token);
+    const timeout = setTimeout(() => {
+      router.push("/");
+      return () => clearTimeout(timeout);
+    }, 100);
   };
   Keydown((e) => {
     if (e.keyCode === 13) {

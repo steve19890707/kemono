@@ -9,12 +9,32 @@ import noop from "lodash.noop";
 export const envHost = () => {
   const host = window.location.host;
   if (!!~host.indexOf(":") || !!~host.indexOf("-dev")) {
-    return "https://rd3-dev-cq9gaming.guardians.one";
+    return "https://rd3-dev-demo.com";
   } else if (!!~host.indexOf("-qa")) {
-    return "https://rd3-qa-cq9gaming.guardians.one";
-  } else if (!!~host.indexOf("cqgame.games")) {
-    return "https://cq9gaming.cqgame.games";
-  } else return "https://www.cq9gaming.com";
+    return "https://rd3-qa-demo.com";
+  } else if (!!~host.indexOf("demo.games")) {
+    return "https://demo.games.com";
+  } else return "https://www.demo.com";
+};
+
+const mockFetchResponse = (result = {}) =>
+  Promise.resolve({
+    json: () =>
+      Promise.resolve({
+        error_msg: "SUCCESS",
+        result,
+      }),
+  });
+
+const mockList = [];
+const mockAdminUserInfo = {
+  id: 27,
+  account: "steve",
+  login_at: "",
+  login_ip: "0.0.0.0",
+  level: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+  email: "",
+  status: true,
 };
 
 const apidomains = (env = "", suffix = "", lang = "", id = "", unique = "") => {
@@ -112,58 +132,59 @@ export const apiUpdateAction = ({
 
 // post
 export const apiPostLogin = (param = { account: "", pwd: "" }) => {
-  return fetch(
-    apidomains(envHost(), "/login"),
-    apiPostRequestHeaderOption(param)
-  );
+  // return fetch(
+  //   apidomains(envHost(), "/login"),
+  //   apiPostRequestHeaderOption(param),
+  // );
+  return mockFetchResponse("local-preview-token");
 };
 
 export const apiPostAccountRegister = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/admin/register"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPostServiceCreate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/service/create"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPostCategoryCreate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/category/create"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPostTopnewsCreate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/ad_popup/create"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPostNewsCreate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/news/create"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPostEventCreate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/event/create"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPostContactUsReply = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/contactus/reply"),
-    apiPostRequestHeaderOption(param, authorization)
+    apiPostRequestHeaderOption(param, authorization),
   );
 };
 
@@ -171,7 +192,7 @@ export const apiPostMediaUpload = (
   formData = new FormData(),
   authorization = "",
   type = "img",
-  setDataOnProgress = noop
+  setDataOnProgress = noop,
 ) => {
   const localAuthorization = localStorage.getItem("authorization") || "";
   const config = {
@@ -183,7 +204,7 @@ export const apiPostMediaUpload = (
     onUploadProgress: (progressEvent) => {
       if (type === "video") {
         setDataOnProgress(
-          Math.ceil((progressEvent.loaded / progressEvent.total) * 100)
+          Math.ceil((progressEvent.loaded / progressEvent.total) * 100),
         );
       }
     },
@@ -195,112 +216,112 @@ export const apiPostMediaUpload = (
 export const apiPutEditAdmin = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/admin/edit_admin"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutHomePageUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/homepage/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutHeaderUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/header/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutAboutUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/about/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutServiceSort = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/service/sort"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutContactusUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/contactus/set_update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutServiceUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/service/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutPartnersList = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/partners/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutCategorySort = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/category/sort"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutCategoryUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/category/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutTopnewsSort = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/ad_popup/sort"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutTopnewsUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/ad_popup/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutNewsSort = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/news/sort"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutNewsUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/news/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutEventSort = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/event/sort"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiPutEventUpdate = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/event/update"),
-    apiPutRequestHeaderOption(param, authorization)
+    apiPutRequestHeaderOption(param, authorization),
   );
 };
 
@@ -308,218 +329,298 @@ export const apiPutEventUpdate = (param = {}, authorization = "") => {
 export const apiDeleteAdminUser = (id = "", authorization = "") => {
   return fetch(
     apidomains(envHost(), `/admin/delete_admin/${id}`),
-    apiDeleteRequestHeaderOption({}, authorization)
+    apiDeleteRequestHeaderOption({}, authorization),
   );
 };
 
 export const apiDeleteServiceData = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/service/delete"),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiDeleteCategoryData = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/category/delete"),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiDeleteTopnewsData = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/ad_popup/delete"),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiDeleteNewsData = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/news/delete"),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiDeleteEventData = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/event/delete"),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiDeleteContactUsData = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), "/contactus/delete"),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 export const apiDeleteImage = (param = {}, authorization = "") => {
   return fetch(
     apidomains(envHost(), `/image/delete`),
-    apiDeleteRequestHeaderOption(param, authorization)
+    apiDeleteRequestHeaderOption(param, authorization),
   );
 };
 
 // get
 export const apiGetCounterVisit = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/counter_visit", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetCounterVisit = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/counter_visit", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({ today: 0, total: 0 });
 };
 
 export const apiGetAdminUserInfo = (authorization = "") => {
-  return fetch(
-    apidomains(envHost(), "/admin/user_info"),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetAdminUserInfo = (authorization = "") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/admin/user_info"),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockAdminUserInfo);
 };
 
 export const apiGetAdminList = (authorization = "") => {
-  return fetch(
-    apidomains(envHost(), "/admin/list"),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetAdminList = (authorization = "") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/admin/list"),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetHeaderList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/header/header_list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetHeaderList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/header/header_list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetHomePageList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/homepage/list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetHomePageList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/homepage/list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetAboutList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/about/list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetAboutList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/about/list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetServiceList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/service/service_list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetServiceList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/service/service_list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetServiceDetail = (authorization = "", lang = "", id = 0) => {
-  return fetch(
-    apidomains(envHost(), "/service/service_detail", "", id),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetServiceDetail = (authorization = "", lang = "", id = 0) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/service/service_detail", "", id),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetContactusList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/contactus/set_list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetContactusList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/contactus/set_list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetContactusMailList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/contactus/list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetContactusMailList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/contactus/list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetContactusMailDetail = (
   authorization = "",
   lang = "cn",
-  id = ""
+  id = "",
 ) => {
-  return fetch(
-    apidomains(envHost(), "/contactus/detail", lang, id),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetContactusMailDetail = (
+  //   authorization = "",
+  //   lang = "cn",
+  //   id = "",
+  // ) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/contactus/detail", lang, id),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetPartnersList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/partners/list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetPartnersList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/partners/list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetCategory = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/category/category_list", lang, "", `&class=news`),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetCategory = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/category/category_list", lang, "", `&class=news`),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetTopNewsList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/ad_popup/list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetTopNewsList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/ad_popup/list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetEventList = (authorization = "", lang = "cn") => {
-  return fetch(
-    apidomains(envHost(), "/event/event_list", lang),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetEventList = (authorization = "", lang = "cn") => {
+  //   return fetch(
+  //     apidomains(envHost(), "/event/event_list", lang),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetTopNewsDetail = (
   authorization = "",
   lang = "cn",
-  id = 0
+  id = 0,
 ) => {
-  return fetch(
-    apidomains(envHost(), "/ad_popup/detail", lang, id),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetTopNewsDetail = (
+  //   authorization = "",
+  //   lang = "cn",
+  //   id = 0,
+  // ) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/ad_popup/detail", lang, id),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetEventDetail = (authorization = "", lang = "cn", id = 0) => {
-  return fetch(
-    apidomains(envHost(), "/event/event_detail", lang, id),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetEventDetail = (authorization = "", lang = "cn", id = 0) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/event/event_detail", lang, id),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetNewsList = (
   authorization = "",
   lang = "cn",
-  unique = ""
+  unique = "",
 ) => {
-  return fetch(
-    apidomains(envHost(), "/news/news_list", lang, "", unique),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetNewsList = (
+  //   authorization = "",
+  //   lang = "cn",
+  //   unique = "",
+  // ) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/news/news_list", lang, "", unique),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const apiGetNewsDetail = (
   authorization = "",
   lang = "cn",
-  unique = 0
+  unique = 0,
 ) => {
-  return fetch(
-    apidomains(envHost(), "/news/news_detail", lang, "", unique),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetNewsDetail = (
+  //   authorization = "",
+  //   lang = "cn",
+  //   unique = 0,
+  // ) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/news/news_detail", lang, "", unique),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse({});
 };
 
 export const apiGetImageList = (
   authorization = "",
   lang = "cn",
-  unique = ""
+  unique = "",
 ) => {
-  return fetch(
-    apidomains(envHost(), "/image/list", lang, "", unique),
-    apiGetRequestHeaderOption(authorization)
-  );
+  // export const apiGetImageList = (
+  //   authorization = "",
+  //   lang = "cn",
+  //   unique = "",
+  // ) => {
+  //   return fetch(
+  //     apidomains(envHost(), "/image/list", lang, "", unique),
+  //     apiGetRequestHeaderOption(authorization),
+  //   );
+  // };
+  return mockFetchResponse(mockList);
 };
 
 export const FetchGetHook = ({
@@ -554,7 +655,7 @@ export const FetchGetHook = ({
             const confrim = confirm(
               error_msg === "Undefined Error (SESSION_NOT_EXIST)"
                 ? "登入驗證已失效，請嘗試重新登入"
-                : error_msg
+                : error_msg,
             );
             if (confrim || !confrim) {
               setIsLoading(false);
