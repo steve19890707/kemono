@@ -10,7 +10,8 @@
     "build:int": "NEXT_PUBLIC_ENVIRONMENT=int next build",
     "build:master": "NEXT_PUBLIC_ENVIRONMENT=master next build",
     "postbuild": "next-sitemap",
-    "start": "NODE_OPTIONS='--inspect' next start"
+    "start": "NODE_OPTIONS='--inspect' next start",
+    "build:gh-pages": "NEXT_PUBLIC_ENVIRONMENT=develope NEXT_PUBLIC_ISLOCAL=true NEXT_PUBLIC_GITHUB_PAGES=true next build"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^6.2.0",
