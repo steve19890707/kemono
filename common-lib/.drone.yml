@@ -1,0 +1,42 @@
+kind: pipeline
+type: docker
+name: default
+
+## 禁止默認 clone 行為
+clone:
+  disable: true
+
+steps:
+  ## teamplus 推播通知
+  ## https://docs.drone.io/pipeline/environment/reference/ 各數值參考文件
+  - name: teamplus
+    image: newevergreen.guardians.one/rd3/drone-sender:v0.0.1
+    settings:
+      target: drone
+      url: https://cqgame.info/API/IMService.ashx?ask=sendChatMessage
+      account: rd3bot
+      apikey: AAE4BFA1-3238-09A3-7964-898C4E985D2A
+      roomid: 2035
+      content: >
+        ✅✅✅✅✅✅
+        由 ${DRONE_COMMIT_AUTHOR} 發出的 神秘推播
+
+        ✅Build ${DRONE_BUILD_NUMBER} of ${DRONE_REPO_NAME} succeeded
+         
+        🔔Branch: ${DRONE_COMMIT_BRANCH}
+         
+        📝Commit Message: ${DRONE_COMMIT_MESSAGE}
+         
+        🌐 ${DRONE_COMMIT_LINK}
+         
+        ✅✅✅✅✅✅
+    when:
+      status:
+        - success
+        - failure
+
+## 觸發 pipeline 條件
+trigger:
+  ref:
+    include:
+      - refs/heads/master

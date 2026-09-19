@@ -1,0 +1,338 @@
+kind: pipeline
+type: docker
+name: default
+
+## 禁止默認 clone 行為
+clone:
+  disable: true
+
+steps:
+  ## clone 專案
+  - name: clone
+    image: newevergreen.guardians.one/rd3/drone-git:latest
+    environment:
+      RSYNC_KEY:
+        from_secret: rsync_key
+    commands:
+      - git config --global user.name "drone"
+      - git config --global user.email "drone@cchntek.com"
+
+      # write the ssh key to disk
+      - mkdir ~/.ssh
+      - echo "$RSYNC_KEY" > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+
+      # add to known hosts
+      - giturl=$(echo ${DRONE_GIT_HTTP_URL} | awk -F "//" '{print $2}' | awk -F "/" '{print $1}')
+      - ssh-keyscan -H $giturl >> ~/.ssh/known_hosts
+      - git config --global url."git@$giturl:".insteadOf "https://$giturl/"
+
+      - git clone ${DRONE_GIT_SSH_URL} .
+      - git checkout $DRONE_COMMIT
+
+      # pull the git submodules
+      - git submodule sync --recursive
+      - git submodule update --recursive --init
+    when:
+      ref:
+        [
+          refs/heads/develop,
+          refs/heads/qatest,
+          refs/heads/int,
+          refs/tags/v*,
+          refs/tags/t*,
+        ]
+  # node_modules 取快取 restore
+  - name: restore-cache
+    image: newevergreen.guardians.one/rd3/drone-volume-cache:latest
+    volumes:
+      - name: cache
+        path: /cache
+    settings:
+      restore: true
+      mount:
+        - ./node_modules
+    when:
+      ref:
+        [
+          refs/heads/develop,
+          refs/heads/qatest,
+          refs/heads/int,
+          refs/tags/v*,
+          refs/tags/t*,
+        ]
+  ## 編譯前端專案 develope
+  - name: yarn-build-develope
+    image: newevergreen.guardians.one/rd3/drone-node:18.18-slim
+    commands:
+      - yarn install
+      - yarn build:develope
+    when:
+      ref: [refs/heads/develop]
+  ## 編譯前端專案 qa
+  - name: yarn-build-qa
+    image: newevergreen.guardians.one/rd3/drone-node:18.18-slim
+    commands:
+      - yarn install
+      - yarn build:qa
+    when:
+      ref: [refs/heads/qatest]
+
+  ## 編譯前端專案 int
+  - name: yarn-build-int
+    image: newevergreen.guardians.one/rd3/drone-node:18.18-slim
+    commands:
+      - yarn install
+      - yarn build:int
+    when:
+      ref: [refs/heads/int]
+  ## 編譯前端專案 master
+  - name: yarn-build-master
+    image: newevergreen.guardians.one/rd3/drone-node:18.18-slim
+    commands:
+      - yarn install
+      - yarn build:master
+    when:
+      ref: [refs/tags/v*, refs/tags/t*]
+  # node_modules 快取 rebuild
+  - name: rebuild-cache
+    image: newevergreen.guardians.one/rd3/drone-volume-cache:latest
+    volumes:
+      - name: cache
+        path: /cache
+    settings:
+      rebuild: true
+      mount:
+        - ./node_modules
+    when:
+      ref:
+        [
+          refs/heads/develop,
+          refs/heads/qatest,
+          refs/heads/int,
+          refs/tags/v*,
+          refs/tags/t*,
+        ]
+  ## 非正式站.tag內容
+  - name: build-tag-file
+    image: newevergreen.guardians.one/rd3/drone-git:latest
+    commands:
+      - cd /drone/src
+      - echo "$(git rev-parse --short=7 ${DRONE_COMMIT_SHA})-${DRONE_BRANCH}" > ./tmp.txt
+      - cat ./tmp.txt > .tags
+      - echo ",latest-${DRONE_BRANCH}" >> .tags
+    when:
+      ref: [refs/heads/develop, refs/heads/qatest, refs/heads/int]
+  ## 正式站.tag內容
+  - name: build-pro-tag-file
+    image: newevergreen.guardians.one/rd3/drone-git:latest
+    commands:
+      - echo ${DRONE_TAG}  > ./tmp.txt
+      - cat ./tmp.txt > .tags
+      - echo ",latest-prod" >> .tags
+    when:
+      ref: [refs/tags/v*, refs/tags/t*]
+  ## 建置容器並傳至 harbor (INT Project)
+  - name: build-image
+    image: newevergreen.guardians.one/rd3/drone-docker:18.09.6
+    settings:
+      registry: newevergreen.guardians.one
+      repo: newevergreen.guardians.one/rd3/front-${DRONE_REPO_NAME}
+      cache_from: newevergreen.guardians.one/rd3/front-${DRONE_REPO_NAME}:latest-${DRONE_BRANCH}
+      dockerfile: ./k8s.Dockerfile
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    when:
+      ref: [refs/heads/develop, refs/heads/qatest, refs/heads/int]
+  ## 建置容器並傳至 harbor (T2 Project)
+  - name: build-sync-images
+    image: newevergreen.guardians.one/rd3/drone-docker:18.09.6
+    settings:
+      registry: newevergreen.guardians.one
+      repo: newevergreen.guardians.one/rd3-sync/front-${DRONE_REPO_NAME}
+      cache_from: newevergreen.guardians.one/rd3-sync/front-${DRONE_REPO_NAME}:latest-prod
+      dockerfile: ./k8s.Dockerfile
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    when:
+      ref: [refs/tags/v*, refs/tags/t*]
+  ## 重新覆蓋 .tag 檔案內容
+  - name: rebuild-tag-file
+    image: newevergreen.guardians.one/rd3/drone-git:latest
+    commands:
+      - cat ./tmp.txt > .tags
+      - cat .tags
+    when:
+      ref:
+        [
+          refs/heads/develop,
+          refs/heads/qatest,
+          refs/heads/int,
+          refs/tags/v*,
+          refs/tags/t*,
+        ]
+  ## 佈署至 dev k8s 環境
+  - name: deploy-dev-k8s
+    image: newevergreen.guardians.one/rd3/drone-kubernetes:latest
+    settings:
+      kubernetes_server:
+        from_secret: kubernetes_server_dev
+      namespace: rd3-dev-${DRONE_REPO_NAME}
+      deployment: ${DRONE_REPO_NAME}-deployment
+      repo: newevergreen.guardians.one/rd3/front-${DRONE_REPO_NAME}
+      container: ${DRONE_REPO_NAME}
+      use_tags_file: true
+      kubernetes_token:
+        from_secret: kubernetes_token_dev
+    when:
+      ref: [refs/heads/develop]
+  ## 佈署至 qa k8s 環境
+  - name: deploy-qa-k8s
+    image: newevergreen.guardians.one/rd3/drone-kubernetes:latest
+    settings:
+      kubernetes_server:
+        from_secret: kubernetes_server_qa
+      namespace: rd3-qa-${DRONE_REPO_NAME}
+      deployment: ${DRONE_REPO_NAME}-deployment
+      repo: newevergreen.guardians.one/rd3/front-${DRONE_REPO_NAME}
+      container: ${DRONE_REPO_NAME}
+      use_tags_file: true
+      kubernetes_token:
+        from_secret: kubernetes_token_qa
+    when:
+      ref: [refs/heads/qatest]
+  ## 佈署至 int k8s 環境
+  - name: deploy-int-k8s
+    image: newevergreen.guardians.one/rd3/drone-kubernetes:latest
+    settings:
+      kubernetes_server:
+        from_secret: kubernetes_server_int
+      namespace: rd3-int-${DRONE_REPO_NAME}
+      deployment: ${DRONE_REPO_NAME}-deployment
+      repo: newevergreen.guardians.one/rd3/front-${DRONE_REPO_NAME}
+      container: ${DRONE_REPO_NAME}
+      use_tags_file: true
+      kubernetes_token:
+        from_secret: kubernetes_token_int
+    when:
+      ref: [refs/heads/int]
+  ## 佈署至 pro 2024 k8s 環境
+  - name: deploy-pro-2024-k8s
+    image: google/cloud-sdk:alpine
+    environment:
+      GCLOUD_KEY_2024:
+        from_secret: gcloud_token_2024
+      K8S_TOKEN_2024:
+        from_secret: kubernetes_token_kemono_prod_2024
+      SSH_KEY_2024:
+        from_secret: gcloud_ssh_key_kemono_prod_2024
+    commands:
+      - 'echo "$GCLOUD_KEY_2024" > /tmp/gcloud-token-2024.json'
+      - 'echo "$SSH_KEY_2024" > /tmp/google_compute_engine'
+      - 'chmod 600 /tmp/google_compute_engine'
+      - 'ssh-keygen -y -f /tmp/google_compute_engine >/tmp/google_compute_engine.pub'
+      - 'gcloud auth activate-service-account rd3-drone-715@npnp-409608.iam.gserviceaccount.com --key-file=/tmp/gcloud-token-2024.json --project=npnp-409608'
+      - 'export IMAGE_REPO=asia-docker.pkg.dev/npnp-409608/rd3-sync/front-kemono:${DRONE_TAG}'
+      - |
+        cat <<EOF >/tmp/deploy-pro-2024.sh
+        set -e
+        export KUBECONFIG=/tmp/deploy-pro-2024.kubeconfig
+        cat <<KCFG >"\$KUBECONFIG"
+        apiVersion: v1
+        kind: Config
+        clusters:
+        - cluster:
+            insecure-skip-tls-verify: true
+            server: https://np-rd3.saturn2022.work/k8s/clusters/local
+          name: rd3
+        users:
+        - name: drone
+          user:
+            token: $K8S_TOKEN_2024
+        contexts:
+        - context:
+            cluster: rd3
+            namespace: rd3-pro-kemono
+            user: drone
+          name: rd3
+        current-context: rd3
+        KCFG
+        kubectl get namespace rd3-pro-kemono
+        kubectl set image deployment/kemono-deployment kemono=$IMAGE_REPO -n rd3-pro-kemono --record=true
+        kubectl rollout status deployment/kemono-deployment -n rd3-pro-kemono
+        EOF
+      - 'gcloud compute scp /tmp/deploy-pro-2024.sh p-it-rd3-jb01:/tmp/ --project=npnp-409608 --zone=asia-east1-b --ssh-key-file=/tmp/google_compute_engine'
+      - "gcloud compute ssh p-it-rd3-jb01 --project=npnp-409608 --zone=asia-east1-b --ssh-key-file=/tmp/google_compute_engine --command='bash /tmp/deploy-pro-2024.sh'"
+    when:
+      ref: [ refs/tags/v* ]
+
+  ## Telegram 推播通知
+  - name: telegram
+    image: newevergreen.guardians.one/rd3/drone-telegram:1.3.5
+    settings:
+      token:
+        from_secret: telegram_token
+      to:
+        from_secret: telegram_to
+      format: markdown
+      message: >
+        {{#success build.status}}
+        ✅ Build #{{build.number}} of `{{repo.name}}` succeeded.
+
+        📝 Commit by `{{commit.author}}` on `{{#if build.tag}}{{build.tag}}{{else}}{{commit.branch}}{{/if}}`:
+
+        ```
+        {{commit.message}}
+        ```
+
+        🌐 {{ build.link }}
+        {{else}}
+        ❌ Build #{{build.number}} of `{{repo.name}}` failed.
+
+        📝  Commit by `{{commit.author}}` on `{{#if build.tag}}{{build.tag}}{{else}}{{commit.branch}}{{/if}}`:
+
+        ```
+        {{commit.message}}
+        ```
+        🌐 {{ build.link }}
+        {{/success}}
+
+
+        〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️
+    when:
+      status:
+        - success
+        - failure
+
+## VM 掛載路徑
+volumes:
+  - name: cache
+    host:
+      path: /usr/local/app/cache
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+## 載入 log 設定
+image_pull_secrets:
+  - dockerconfigjson
+
+## 觸發 pipeline 條件
+trigger:
+  ref:
+    include:
+      - refs/heads/develop
+      - refs/heads/qatest
+      - refs/heads/int
+      - refs/tags/v*
+      - refs/tags/t*
