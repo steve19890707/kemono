@@ -453,7 +453,7 @@ const NewsPage = () => {
           cancelPopup={() => {
             setPopupState(false);
           }}
-          CKEditor={DynamicCKEditor}
+          CKEditorComponent={DynamicCKEditor}
         />
       )}
     </>

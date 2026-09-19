@@ -109,8 +109,8 @@ const PartnersPage = () => {
     promise: apiGetPartnersList,
     success: (data) => {
       const content = getData(data, [0, "content"]);
-      const response = content ? JSON.parse(content) : {};
-      setMainZoneProps(getData(response, ["main"], mainzone));
+      const response = parsePartnersContent(content);
+      setMainZoneProps(normalizeMainZone(getData(response, ["main"], {})));
       setCustomerZoneProps(getData(response, ["customer"], []));
     },
   });
@@ -296,7 +296,7 @@ const PartnersPage = () => {
                         cropBtnType2={true}
                         imgSize={`188x73`}
                         type={`partners-customer-${langaugeTranslation(
-                          langauge,
+                          editLang,
                         )}`}
                         picture={getData(customerZoneProps, [index, "src"])}
                         setPicture={(res) => {
@@ -415,6 +415,33 @@ const PartnersPage = () => {
     </>
   );
 };
+
+const parsePartnersContent = (content) => {
+  if (!content) return {};
+  if (typeof content === "object") return content;
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    return {};
+  }
+};
+
+const normalizeMainZone = (data = {}) => ({
+  ...mainzone,
+  ...data,
+  src: {
+    ...mainzone.src,
+    ...getData(data, ["src"], {}),
+  },
+  icon: {
+    ...mainzone.icon,
+    ...getData(data, ["icon"], {}),
+  },
+  descriptions: {
+    ...mainzone.descriptions,
+    ...getData(data, ["descriptions"], {}),
+  },
+});
 
 const DynamicManagement = dynamic(() => Promise.resolve(PartnersPage), {
   ssr: false,

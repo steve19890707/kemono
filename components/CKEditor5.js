@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import Editor from "ckeditor5-custom-build/build/ckeditor";
@@ -46,6 +46,10 @@ const StyledCKEditor = styled.div`
   .ck-content {
     background-color: #bdbdbd !important;
   }
+  .ck.ck-dropdown__panel,
+  .ck.ck-balloon-panel {
+    z-index: 10000 !important;
+  }
   .ck-button__label {
     font-size: 16px !important;
   }
@@ -64,7 +68,35 @@ export default function CKEditor5({
   const localAuthorization = localStorage.getItem("authorization") || "";
   useEffect(() => {
     dispatch(setTemporaryText(content));
-  }, []);
+  }, [content, dispatch]);
+
+  const toolbarItems = useMemo(() => [
+    "Heading",
+    "|",
+    "FindAndReplace",
+    "FontColor",
+    "FontSize",
+    "Bold",
+    "Underline",
+    "Italic",
+    "Alignment",
+    "bulletedList",
+    "numberedList",
+    "|",
+    "outdent",
+    "indent",
+    "|",
+    "ImageUpload",
+    useMediaEmbed && "MediaEmbed",
+    "Link",
+    "BlockQuote",
+    "Code",
+    "insertTable",
+    "SelectAll",
+    "RemoveFormat",
+    "Undo",
+    "Redo",
+  ].filter(Boolean), [useMediaEmbed]);
   return (
     <StyledCKEditor>
       <div className={"document-editor"}>
@@ -120,34 +152,7 @@ export default function CKEditor5({
                 },
               ],
             },
-            toolbar: [
-              "Heading",
-              "|",
-              "FindAndReplace",
-              "FontColor",
-              "FontSize",
-              // "FontFamily",
-              "Bold",
-              "Underline",
-              "Italic",
-              "Alignment",
-              "bulletedList",
-              "numberedList",
-              "|",
-              "outdent",
-              "indent",
-              "|",
-              "ImageUpload",
-              useMediaEmbed && "MediaEmbed",
-              "Link",
-              "BlockQuote",
-              "Code",
-              "insertTable",
-              "SelectAll",
-              "RemoveFormat",
-              "Undo",
-              "redo",
-            ],
+            toolbar: toolbarItems,
             link: {
               addTargetToExternalLinks: true,
             },

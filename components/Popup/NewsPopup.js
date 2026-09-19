@@ -107,7 +107,7 @@ export default function NewsPopup({
   categoryListData = [],
   apiCreateSucces = noop,
   cancelPopup = noop,
-  CKEditor = noop,
+  CKEditorComponent = noop,
 }) {
   const dispatch = useDispatch();
   const popupType = useSelector((state) => state.props.popupType);
@@ -566,7 +566,7 @@ export default function NewsPopup({
               </div>
               <div className="quill-content">
                 {/* <Quill content={editorContent} /> */}
-                <CKEditor content={editorContent} />
+                <CKEditorComponent content={editorContent} />
               </div>
             </>
           )}
